@@ -2,20 +2,20 @@
 CC = clang++
 
 # Compiler flags
-CFLAGS = -std=c++17 -Iinclude/GLFW -Iinclude/glad
+CFLAGS = -std=c++17 -Iinclude/GLFW -IEngine/glad
 
 # Source files
-SRC = src/main.cpp include/glad/glad.c src/graphics.cpp
+SRC = example/src/main.cpp Engine/vendor/glad/glad.c Engine/graphics.cpp
 
 # Object files
-OBJ = $(SRC:src/%.cpp=bin/%.o)
-OBJ := $(OBJ:include/glad/%.c=bin/%.o)
+OBJ = $(SRC:example/src/%.cpp=example/bin/%.o)
+# OBJ := $(OBJ:Engine/vendor/include/glad/%.c=Engine/bin/%.o)
 
 # Output binary
-OUT = bin/main
+OUT = example/bin/main
 
 # Libraries
-LDFLAGS = -Llibs -lglfw
+LDFLAGS = -Lexample/libs -lglfw
 
 # GLFW required frameworks on macOS
 UNAME_S := $(shell uname -s)
@@ -31,11 +31,11 @@ $(OUT): $(OBJ)
 	$(CC) $(CFLAGS) $(OBJ) -o $(OUT) $(LDFLAGS)
 
 # Compile source files to object files
-bin/%.o: src/%.cpp
+example/bin/%.o: example/src/%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
-bin/%.o: include/glad/%.c
-	$(CC) $(CFLAGS) -c $< -o $@
+# Engine/bin/%.o: example/include/glad/%.c
+# 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Run rule
 run: $(OUT)
@@ -43,6 +43,6 @@ run: $(OUT)
 
 # Clean rule
 clean:
-	rm -f $(OUT) bin/*.o
+	rm -f $(OUT) example/bin/*.o
 
 .PHONY: clean run
