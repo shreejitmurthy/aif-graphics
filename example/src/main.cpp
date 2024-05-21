@@ -1,6 +1,4 @@
-#include <iostream>
 #include "../../Engine/graphics.hpp"
-#include "../../Engine/vendor/shader_s.h"
 #include "../include/GLFW/glfw3.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -24,8 +22,6 @@ int main() {
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     Graphics g((GLADloadproc)glfwGetProcAddress);
-    
-    Shader ourShader("example/resources/shaders/texture.vs", "example/resources/shaders/texture.fs");
 
     auto texture = g.loadImage("example/resources/container.jpg");
 
@@ -34,7 +30,6 @@ int main() {
 
         g.clearBackground(TEAL);
 
-        ourShader.use();
         g.drawImage(texture);
 
         glfwSwapBuffers(window);
