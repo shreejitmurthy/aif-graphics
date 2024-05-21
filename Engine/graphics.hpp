@@ -3,6 +3,16 @@
 #include <iostream>
 #include <memory>
 #include <array>
+#include <fstream>
+#include <sstream>
+
+struct S_Shader {
+    unsigned int ID;
+};
+
+void checkCompileErrors(unsigned int shader, std::string type);
+S_Shader new_shader(const char* vertexPath, const char* fragmentPath);
+void use_shader(S_Shader shader);
 
 #define WHITE (Colour) {1.0f, 1.0f, 1.0f, 1.0f}
 #define BLACK (Colour) {0.0f, 0.0f, 0.0f, 1.0f}
@@ -37,6 +47,7 @@ public:
     void drawImage(Texture texture);
 private:
     unsigned int VBO, VAO, EBO;
+    S_Shader textureShader;
 };
 
 void setVPT(int width, int height);
