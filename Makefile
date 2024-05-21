@@ -1,14 +1,14 @@
 # Compiler
-CC = clang
+CC = clang++
 
 # Compiler flags
-CFLAGS = -std=c11 -Iinclude/GLFW
+CFLAGS = -std=c++17 -Iinclude/GLFW
 
 # Source files
-SRC = src/main.c
+SRC = src/main.cpp
 
 # Object files
-OBJ = $(SRC:.c=.o)
+OBJ = $(SRC:.cpp=.o)
 
 # Output binary
 OUT = bin/main
