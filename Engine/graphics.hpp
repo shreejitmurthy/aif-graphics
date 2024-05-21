@@ -1,6 +1,5 @@
 #pragma once
 #include "vendor/glad/glad.h"
-#include "vendor/shader_s.h"
 #include <iostream>
 #include <memory>
 #include <array>
@@ -34,10 +33,10 @@ public:
     ~Graphics();
 
     void clearBackground(Colour col);
-    std::unique_ptr<Texture> loadImage(const char* path, TextureFilter mag = TextureFilter::LINEAR);
+    Texture loadImage(const char* path, TextureFilter mag = TextureFilter::LINEAR);
+    void drawImage(Texture texture);
 private:
     unsigned int VBO, VAO, EBO;
-    S_Shader textureShader;
 };
 
 void setVPT(int width, int height);

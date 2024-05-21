@@ -1,8 +1,6 @@
 #include "graphics.hpp"
 #define STB_IMAGE_IMPLEMENTATION
 #include "vendor/stb_image.h"
-#include "vendor/shader_s.h"
-
 
 void setVPT(int w, int h) {
     glViewport(0, 0, w, h);
@@ -14,7 +12,7 @@ Graphics::Graphics(GLADloadproc proc) {
         std::cerr << "Failed to initialize GLAD" << std::endl;
     }
 
-    textureShader = new_shader("shaders/texture.vs", "shaders/texture.fs");
+    // textureShader = new_shader("./shaders/texture.vs", "./shaders/texture.fs");
 
     // float
     static constexpr auto vertices = std::array{
@@ -66,11 +64,11 @@ void Graphics::clearBackground(Colour col) {
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-std::unique_ptr<Texture> Graphics::loadImage(const char* path, TextureFilter mag) {
-    std::unique_ptr<Texture> t = std::make_unique<Texture>();
+Texture Graphics::loadImage(const char* path, TextureFilter mag) {
+    Texture t;
 
-    glGenTextures(1, &t->ID);
-    glBindTexture(GL_TEXTURE_2D, t->ID);
+    glGenTextures(1, &t.ID);
+    glBindTexture(GL_TEXTURE_2D, t.ID);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
@@ -81,15 +79,21 @@ std::unique_ptr<Texture> Graphics::loadImage(const char* path, TextureFilter mag
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag);
 
-    t->data = stbi_load(path, &t->width, &t->height, &t->nrChannels, 0);
-    if (!t->data) {
+    t.data = stbi_load(path, &t.width, &t.height, &t.nrChannels, 0);
+    if (!t.data) {
         std::cerr << "Failed to load texture at: '" << path << "'" << std::endl;
     }
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, t->width, t->height, 0, GL_RGB, GL_UNSIGNED_BYTE, t->data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, t.width, t.height, 0, GL_RGB, GL_UNSIGNED_BYTE, t.data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
-    stbi_image_free(t->data);
+    stbi_image_free(t.data);
 
     return t;
+}
+
+void Graphics::drawImage(Texture texture) {
+    glBindVertexArray(VAO);
+    glBindTexture(GL_TEXTURE_2D, texture.ID);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
