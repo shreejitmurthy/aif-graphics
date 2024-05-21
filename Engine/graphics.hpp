@@ -1,5 +1,6 @@
 #pragma once
-#include "./vendor/glad/glad.h"
+#include "vendor/glad/glad.h"
+#include "vendor/shader_s.h"
 #include <iostream>
 #include <memory>
 #include <array>
@@ -27,19 +28,6 @@ struct Texture {
     unsigned char* data;
 };
 
-// static constexpr auto vertices = std::array{
-//     // positions          // colors           // texture coords
-//      0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
-//      0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
-//     -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
-//     -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left
-// };
-
-// static constexpr auto indices = std::array{
-//     0, 1, 3, // first triangle
-//     1, 2, 3  // second triangle
-// };
-
 class Graphics {
 public:
     Graphics(GLADloadproc proc);
@@ -49,6 +37,7 @@ public:
     std::unique_ptr<Texture> loadImage(const char* path, TextureFilter mag = TextureFilter::LINEAR);
 private:
     unsigned int VBO, VAO, EBO;
+    S_Shader textureShader;
 };
 
 void setVPT(int width, int height);

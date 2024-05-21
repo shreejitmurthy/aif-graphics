@@ -14,6 +14,8 @@ Graphics::Graphics(GLADloadproc proc) {
         std::cerr << "Failed to initialize GLAD" << std::endl;
     }
 
+    textureShader = new_shader("shaders/texture.vs", "shaders/texture.fs");
+
     // float
     static constexpr auto vertices = std::array{
         // positions          // colours          // texture coords
