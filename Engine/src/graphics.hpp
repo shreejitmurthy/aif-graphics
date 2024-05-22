@@ -96,16 +96,24 @@ struct Texture {
 
 class Graphics {
 public:
-    Graphics(GLADloadproc proc);
+    Graphics(GLADloadproc proc, int w, int h);
     ~Graphics();
 
     void clearBackground(Colour col);
     Texture loadImage(const char* path, TextureFilter filter = {FilterParams::LINEAR, FilterParams::LINEAR});
+
     void drawImage(Texture texture);
     void drawImage(Texture texture, float x, float y);
+    void drawImage(Texture texture, float x, float y, float sx, float sy, float r);
 private:
+
+    glm::mat4 generic_scale(Texture texture, glm::mat4 transform);
+
+    int imageCount;
     unsigned int VBO, VAO, EBO;
     S_Shader textureShader;
+    int screenWidth; 
+    int screenHeight;
 };
 
 void setVPT(int width, int height);

@@ -2,8 +2,6 @@
 #include "../vendor/stb_image.h"
 #include "graphics.hpp"
 
-// TODO: Scale textures to be the size of their dimensions.
-
 void checkCompileErrors(unsigned int shader, std::string type) {
     int success;
     char infoLog[1024];
@@ -91,7 +89,7 @@ void setVPT(int w, int h) {
 }
 
 // load glad + setup vertex data (and buffer(s)) and configure vertex attributess
-Graphics::Graphics(GLADloadproc proc) {
+Graphics::Graphics(GLADloadproc proc, int w, int h) : screenWidth(w), screenHeight(h) {
     if (!gladLoadGLLoader(proc)) {
         std::cerr << "Failed to initialize GLAD" << std::endl;
     }
@@ -103,10 +101,10 @@ Graphics::Graphics(GLADloadproc proc) {
     // float
     static constexpr auto vertices = std::array{
         // positions          // colours          // texture coords
-         0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
-         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
-        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
-        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left
+        1.0f,  1.0f, 0.0f,    1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
+        1.0f, -1.0f, 0.0f,    0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
+        -1.0f, -1.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
+        -1.0f,  1.0f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left
     };
 
     // unsigned int
@@ -179,7 +177,7 @@ Texture Graphics::loadImage(const char* path, TextureFilter filter) {
 void Graphics::drawImage(Texture texture) {
     glm::mat4 transform = glm::mat4(1.0f);
     transform = glm::translate(transform, glm::vec3(0.f, 0.f, 0.f));
-    // transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+    transform = generic_scale(texture, transform);
 
     use_shader(textureShader);
     unsigned int transformLoc = glGetUniformLocation(textureShader.ID, "transform");
@@ -192,7 +190,8 @@ void Graphics::drawImage(Texture texture) {
 
 void Graphics::drawImage(Texture texture, float x, float y) {
     glm::mat4 transform = glm::mat4(1.0f);
-    transform = glm::translate(transform, Math::ConvertTo3DSpace(glm::vec2(x, y), 1.f, 800, 600));
+    transform = glm::translate(transform, Math::ConvertTo3DSpace(glm::vec2(x, y), 1.f, screenWidth, screenHeight));
+    transform = generic_scale(texture, transform);
 
     use_shader(textureShader);
     unsigned int transformLoc = glGetUniformLocation(textureShader.ID, "transform");
@@ -202,4 +201,33 @@ void Graphics::drawImage(Texture texture, float x, float y) {
     glBindTexture(GL_TEXTURE_2D, texture.ID);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
+}
+
+// Draw image with additional parameters. Set scale values to -1 for auto scale
+void Graphics::drawImage(Texture texture, float x, float y, float sx, float sy, float r) {
+    glm::mat4 transform = glm::mat4(1.0f);
+    transform = glm::translate(transform, Math::ConvertTo3DSpace(glm::vec2(x, y), 1.f, screenWidth, screenHeight));
+
+    if (sx < 0 && sy < 0) {
+        transform = generic_scale(texture, transform);
+    } else {
+        transform = glm::scale(transform, glm::vec3(sx, sy, 1.f));
+    }
+
+    transform = glm::rotate(transform, r, glm::vec3(0.0f, 0.0f, 1.0f));
+
+    use_shader(textureShader);
+    unsigned int transformLoc = glGetUniformLocation(textureShader.ID, "transform");
+    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+
+    glBindVertexArray(VAO);
+    glBindTexture(GL_TEXTURE_2D, texture.ID);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+}
+
+glm::mat4 Graphics::generic_scale(Texture texture, glm::mat4 transform) {
+    float scaleX = texture.width / static_cast<float>(screenWidth);
+    float scaleY = texture.height / static_cast<float>(screenHeight);
+    transform = glm::scale(transform, glm::vec3(scaleX, scaleY, 1.f));
+    return transform;
 }
