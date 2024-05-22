@@ -175,8 +175,29 @@ Texture Graphics::loadImage(const char* path, TextureFilter filter) {
 }
 
 void Graphics::drawImage(Texture texture) {
+    glm::mat4 transform = glm::mat4(1.0f);
+    transform = glm::translate(transform, glm::vec3(0.f, 0.f, 0.f));
+    // transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+
     use_shader(textureShader);
+    unsigned int transformLoc = glGetUniformLocation(textureShader.ID, "transform");
+    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+
     glBindVertexArray(VAO);
     glBindTexture(GL_TEXTURE_2D, texture.ID);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+}
+
+void Graphics::drawImage(Texture texture, float x, float y) {
+    glm::mat4 transform = glm::mat4(1.0f);
+    transform = glm::translate(transform, Math::ConvertTo3DSpace(glm::vec2(x, y), 1.f, 800, 600));
+
+    use_shader(textureShader);
+    unsigned int transformLoc = glGetUniformLocation(textureShader.ID, "transform");
+    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+
+    glBindVertexArray(VAO);
+    glBindTexture(GL_TEXTURE_2D, texture.ID);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
 }

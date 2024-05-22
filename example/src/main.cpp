@@ -23,14 +23,15 @@ int main() {
 
     Graphics g((GLADloadproc)glfwGetProcAddress);
 
-    auto texture = g.loadImage("example/resources/cat.png");
+    auto cat = g.loadImage("example/resources/cat.png");
+    auto container = g.loadImage("example/resources/container.jpg");
 
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
 
         g.clearBackground(TEAL);
 
-        g.drawImage(texture);
+        g.drawImage(container, 400, 300);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
