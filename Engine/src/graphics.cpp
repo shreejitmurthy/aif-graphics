@@ -2,6 +2,8 @@
 #include "../vendor/stb_image.h"
 #include "graphics.hpp"
 
+// TODO: Scale textures to be the size of their dimensions.
+
 void checkCompileErrors(unsigned int shader, std::string type) {
     int success;
     char infoLog[1024];
