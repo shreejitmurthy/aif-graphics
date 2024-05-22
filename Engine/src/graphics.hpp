@@ -19,9 +19,14 @@ void use_shader(S_Shader shader);
 #define TEAL  (Colour) {0.2f, 0.3f, 0.3f, 1.0f}
 
 // this is so useless
-enum TextureFilter {   
+enum FilterParams {   
     NEAR   = 0x2600,
     LINEAR = 0x2601
+};
+
+struct TextureFilter {
+    FilterParams min;
+    FilterParams mag;
 };
 
 struct Colour {
@@ -43,7 +48,7 @@ public:
     ~Graphics();
 
     void clearBackground(Colour col);
-    Texture loadImage(const char* path, TextureFilter mag = TextureFilter::LINEAR);
+    Texture loadImage(const char* path, TextureFilter filter = {FilterParams::LINEAR, FilterParams::LINEAR});
     void drawImage(Texture texture);
 private:
     unsigned int VBO, VAO, EBO;

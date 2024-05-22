@@ -94,6 +94,8 @@ Graphics::Graphics(GLADloadproc proc) {
         std::cerr << "Failed to initialize GLAD" << std::endl;
     }
 
+    stbi_set_flip_vertically_on_load(true);
+
     textureShader = new_shader("Engine/shaders/texture.vs", "Engine/shaders/texture.fs");
 
     // float
@@ -145,27 +147,26 @@ void Graphics::clearBackground(Colour col) {
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-Texture Graphics::loadImage(const char* path, TextureFilter mag) {
+Texture Graphics::loadImage(const char* path, TextureFilter filter) {
     Texture t;
 
     glGenTextures(1, &t.ID);
     glBindTexture(GL_TEXTURE_2D, t.ID);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // set texture filtering parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    float borderColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);  
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag);
-
-    t.data = stbi_load(path, &t.width, &t.height, &t.nrChannels, 0);
+    // soluton to NPOT textures: set nrChannels, req_comp to 4 and read image at RGBA
+    t.data = stbi_load(path, &t.width, &t.height, &t.nrChannels, 4);
+    t.nrChannels = 4;
     if (!t.data) {
         std::cerr << "Failed to load texture at: '" << path << "'" << std::endl;
     }
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, t.width, t.height, 0, GL_RGB, GL_UNSIGNED_BYTE, t.data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, t.width, t.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, t.data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     stbi_image_free(t.data);
