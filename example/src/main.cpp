@@ -1,4 +1,4 @@
-#include "../../Engine/graphics.hpp"
+#include "../../engine/src/graphics.hpp"
 #include "../include/GLFW/glfw3.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -23,7 +23,7 @@ int main() {
 
     Graphics g((GLADloadproc)glfwGetProcAddress);
 
-    auto texture = g.loadImage("example/resources/container.jpg");
+    auto texture = g.loadImage("example/resources/cat.png");
 
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
