@@ -94,6 +94,13 @@ struct Texture {
     unsigned char* data;
 };
 
+struct DrawParams {
+    float x, y;
+    float sx, sy;
+    float r;
+    float ox, oy;
+};
+
 class Graphics {
 public:
     Graphics(GLADloadproc proc, int w, int h);
@@ -102,12 +109,12 @@ public:
     void clearBackground(Colour col);
     Texture loadImage(const char* path, TextureFilter filter = {FilterParams::LINEAR, FilterParams::LINEAR});
 
-    void drawImage(Texture texture);
     void drawImage(Texture texture, float x, float y);
-    void drawImage(Texture texture, float x, float y, float sx, float sy, float r);
+    void drawImage(Texture texture, DrawParams params);
 private:
 
     glm::mat4 generic_scale(Texture texture, glm::mat4 transform);
+    void bind_and_draw(glm::mat4 transform, Texture texture);
 
     int imageCount;
     unsigned int VBO, VAO, EBO;

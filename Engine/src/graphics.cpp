@@ -174,55 +174,35 @@ Texture Graphics::loadImage(const char* path, TextureFilter filter) {
     return t;
 }
 
-void Graphics::drawImage(Texture texture) {
-    glm::mat4 transform = glm::mat4(1.0f);
-    transform = glm::translate(transform, glm::vec3(0.f, 0.f, 0.f));
-    transform = generic_scale(texture, transform);
-
-    use_shader(textureShader);
-    unsigned int transformLoc = glGetUniformLocation(textureShader.ID, "transform");
-    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
-
-    glBindVertexArray(VAO);
-    glBindTexture(GL_TEXTURE_2D, texture.ID);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-}
-
 void Graphics::drawImage(Texture texture, float x, float y) {
     glm::mat4 transform = glm::mat4(1.0f);
     transform = glm::translate(transform, Math::ConvertTo3DSpace(glm::vec2(x, y), 1.f, screenWidth, screenHeight));
     transform = generic_scale(texture, transform);
 
-    use_shader(textureShader);
-    unsigned int transformLoc = glGetUniformLocation(textureShader.ID, "transform");
-    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
-
-    glBindVertexArray(VAO);
-    glBindTexture(GL_TEXTURE_2D, texture.ID);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
+    bind_and_draw(transform, texture);
 }
 
-// Draw image with additional parameters. Set scale values to -1 for auto scale
-void Graphics::drawImage(Texture texture, float x, float y, float sx, float sy, float r) {
+// Draw image with additional parameters. 
+// Set scale values to -1 for auto scale 
+// Set origin values to -1 for auto origin at top-left, 0 for centre of image
+void Graphics::drawImage(Texture texture, DrawParams params) {
     glm::mat4 transform = glm::mat4(1.0f);
-    transform = glm::translate(transform, Math::ConvertTo3DSpace(glm::vec2(x, y), 1.f, screenWidth, screenHeight));
+    float x = params.x;
+    float y = params.y;
 
-    if (sx < 0 && sy < 0) {
-        transform = generic_scale(texture, transform);
+    if (params.ox < 0 && params.oy < 0) {
+        x += (texture.width / 2);
+        y += (texture.height / 2);
     } else {
-        transform = glm::scale(transform, glm::vec3(sx, sy, 1.f));
+        x += params.ox;
+        y += params.oy;
     }
 
-    transform = glm::rotate(transform, r, glm::vec3(0.0f, 0.0f, 1.0f));
+    transform = glm::translate(transform, Math::ConvertTo3DSpace(glm::vec2(x, y), 1.f, screenWidth, screenHeight));
+    (params.sx < 0 && params.sy < 0) ? transform = generic_scale(texture, transform) : transform = glm::scale(transform, glm::vec3(params.sx, params.sy, 1.f));
+    transform = glm::rotate(transform, params.r, glm::vec3(0.0f, 0.0f, 1.0f));
 
-    use_shader(textureShader);
-    unsigned int transformLoc = glGetUniformLocation(textureShader.ID, "transform");
-    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
-
-    glBindVertexArray(VAO);
-    glBindTexture(GL_TEXTURE_2D, texture.ID);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    bind_and_draw(transform, texture);
 }
 
 glm::mat4 Graphics::generic_scale(Texture texture, glm::mat4 transform) {
@@ -230,4 +210,14 @@ glm::mat4 Graphics::generic_scale(Texture texture, glm::mat4 transform) {
     float scaleY = texture.height / static_cast<float>(screenHeight);
     transform = glm::scale(transform, glm::vec3(scaleX, scaleY, 1.f));
     return transform;
+}
+
+void Graphics::bind_and_draw(glm::mat4 transform, Texture texture) {
+    use_shader(textureShader);
+    unsigned int transformLoc = glGetUniformLocation(textureShader.ID, "transform");
+    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+
+    glBindVertexArray(VAO);
+    glBindTexture(GL_TEXTURE_2D, texture.ID);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
