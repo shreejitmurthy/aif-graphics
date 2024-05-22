@@ -1,5 +1,5 @@
 #pragma once
-#include "vendor/glad/glad.h"
+#include "../vendor/glad/glad.h"
 #include <iostream>
 #include <memory>
 #include <array>
