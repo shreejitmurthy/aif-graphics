@@ -2,6 +2,8 @@
 #include "../include/GLFW/glfw3.h"
 #include <cmath>
 
+// TODO: See if multiple images in one scene can work.
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 
@@ -27,15 +29,32 @@ int main() {
 
     Graphics g((GLADloadproc)glfwGetProcAddress, screen_width, screen_height);
 
-    auto cat = g.loadImage("example/resources/cat.png");
+    auto cat = g.loadImage("example/resources/big_cat.png");
     auto container = g.loadImage("example/resources/container.jpg");
+
+    float x = 0;
+    float y = 0;
+
+    // glfwSwapInterval(1);
 
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
 
+        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+            x += 1;
+        }  else if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+            x -= 1;
+        }
+        if (glfwGetKey(window, GLFW_KEY_UP)) {
+            y -= 1;
+        } else if (glfwGetKey(window, GLFW_KEY_DOWN)) {
+            y += 1;
+        }
+
         g.clearBackground(TEAL);
 
-        g.drawImage(container, 250, 250, 0.5, 0.5, (float)glfwGetTime());
+        // g.drawImage(container, x, y, 0.5, 0.5, (float)(glfwGetTime()));
+        g.drawImage(cat, (DrawParams){.x = x, .y = y, .sx = 0.5, .sy = 0.5, .r = 0, .ox = 0, .oy = 0});
 
         glfwSwapBuffers(window);
         glfwPollEvents();
