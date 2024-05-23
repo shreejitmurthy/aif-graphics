@@ -218,15 +218,18 @@ void Graphics::drawImage(Graphics::Texture texture, DrawParams params) {
         y += params.oy;
     }
 
-    texture.transform = glm::translate(texture.transform, Math::ConvertTo3DSpace(glm::vec2(x, y), 1.f, screenWidth, screenHeight));
-    if (params.sx < 0 && params.sy < 0) {
-        float scaleX = texture.width / static_cast<float>(screenWidth);
-        float scaleY = texture.height / static_cast<float>(screenHeight);
-        texture.transform = glm::scale(texture.transform, glm::vec3(scaleX, scaleY, 1.f));
+    texture.set_position(x, y, screenWidth, screenHeight);
+    if (!texture.scaled) {
+        if (params.sx < 0 && params.sy < 0) {
+            float scaleX = texture.width / static_cast<float>(screenWidth);
+            float scaleY = texture.height / static_cast<float>(screenHeight);
+            texture.transform = glm::scale(texture.transform, glm::vec3(scaleX, scaleY, 1.f));
+        } else {
+            texture.transform = glm::scale(texture.transform, glm::vec3(params.sx, params.sy, 1.f));
+        }
     } else {
-        texture.transform = glm::scale(texture.transform, glm::vec3(params.sx, params.sy, 1.f));
+        texture.transform = glm::scale(texture.transform, glm::vec3(texture.sx, texture.sy, 1.f));
     }
-    
     texture.transform = glm::rotate(texture.transform, params.r, glm::vec3(0.0f, 0.0f, 1.0f));
 
     bind_and_draw(texture);

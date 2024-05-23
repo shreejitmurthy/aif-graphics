@@ -36,7 +36,7 @@ int main() {
     float x = 0;
     float y = 0;
 
-    // glfwSwapInterval(1);
+    glfwSwapInterval(1);
 
     while (!glfwWindowShouldClose(window)) {
         processInput(window);

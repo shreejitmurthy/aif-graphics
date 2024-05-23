@@ -116,6 +116,7 @@ public:
 
         void set_position(float x, float y, int screenWidth, int screenHeight);
         void scale(float sx, float sy);
+        void rotate(float r);
     };
 
 
@@ -127,6 +128,7 @@ public:
 
     void drawImage(Texture texture, float x, float y);
     void drawImage(Texture texture, DrawParams params);
+    void drawImage(std::unique_ptr<Texture> texture, DrawParams params);
 private:
     void bind_and_draw(Texture texture);
 
