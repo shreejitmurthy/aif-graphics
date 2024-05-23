@@ -105,22 +105,26 @@ Graphics::Graphics(GLADloadproc proc, int w, int h) : screenWidth(w), screenHeig
     if (!gladLoadGLLoader(proc)) {
         std::cerr << "Failed to initialize GLAD" << std::endl;
     }
-
     stbi_set_flip_vertically_on_load(true);
-
     textureShader = new_shader("Engine/shaders/texture.vs", "Engine/shaders/texture.fs");
+    setupBuffers();
+}
 
-    // float
-    static constexpr auto vertices = std::array{
+Graphics::~Graphics() {
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
+}
+
+void Graphics::setupBuffers() {
+    static constexpr float vertices[] = {
         // positions          // colours          // texture coords
         1.0f,  1.0f, 0.0f,    1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
         1.0f, -1.0f, 0.0f,    0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
         -1.0f, -1.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
         -1.0f,  1.0f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left
     };
-
-    // unsigned int
-    static constexpr auto indices = std::array{
+    static constexpr unsigned int indices[] = {
         0, 1, 3, // first triangle
         1, 2, 3  // second triangle
     };
@@ -130,116 +134,67 @@ Graphics::Graphics(GLADloadproc proc, int w, int h) : screenWidth(w), screenHeig
     glGenBuffers(1, &EBO);
 
     glBindVertexArray(VAO);
-
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    // position attribute
+    glEnableVertexAttribArray(0); // Position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    // colour attribute
+    glEnableVertexAttribArray(1); // Color attribute
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    // texture coord attribute
+    glEnableVertexAttribArray(2); // Texture coord attribute
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-}
-
-Graphics::~Graphics() {
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
-}
-
-void Graphics::clearBackground(Colour col) {
-    glClearColor(col.r, col.g, col.b, col.a);
-    glClear(GL_COLOR_BUFFER_BIT);
 }
 
 Graphics::Texture Graphics::loadImage(const char* path, TextureFilter filter) {
-    Graphics::Texture t;
-
-    glGenTextures(1, &t.ID);
-    glBindTexture(GL_TEXTURE_2D, t.ID);
-
+    Texture texture;
+    glGenTextures(1, &texture.ID);
+    glBindTexture(GL_TEXTURE_2D, texture.ID);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    // soluton to NPOT textures: set nrChannels, req_comp to 4 and read image at RGBA
-    t.data = stbi_load(path, &t.width, &t.height, &t.nrChannels, 4);
-    t.nrChannels = 4;
-    if (!t.data) {
-        std::cerr << "Failed to load texture at: '" << path << "'" << std::endl;
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter.min);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter.mag);
+    texture.data = stbi_load(path, &texture.width, &texture.height, &texture.nrChannels, 4);
+    if (texture.data) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture.data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        stbi_image_free(texture.data);
+    } else {
+        std::cerr << "Failed to load texture: " << path << std::endl;
     }
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, t.width, t.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, t.data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    stbi_image_free(t.data);
-
-    return t;
+    return texture;
 }
 
-void Graphics::drawImage(Graphics::Texture texture, float x, float y) {
+void Graphics::clearBackground(Colour color) {
+    glClearColor(color.r, color.g, color.b, color.a);
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void Graphics::drawImage(Texture& texture, float x, float y) {
+    // Reset the transform to the identity matrix for each frame's drawing
     texture.transform = glm::mat4(1.0f);
+
+    // Set position via the texture's own method
     texture.set_position(x, y, screenWidth, screenHeight);
 
+    // If the texture hasn't been manually scaled, calculate the scaling based on screen size
     if (!texture.scaled) {
-        float scaleX = texture.width / static_cast<float>(screenWidth);
-        float scaleY = texture.height / static_cast<float>(screenHeight);
+        float scaleX = static_cast<float>(texture.width) / screenWidth;
+        float scaleY = static_cast<float>(texture.height) / screenHeight;
         texture.transform = glm::scale(texture.transform, glm::vec3(scaleX, scaleY, 1.f));
     } else {
-        texture.transform = glm::scale(texture.transform, glm::vec3(texture.sx, texture.sy, 1.f));
+         texture.transform = glm::scale(texture.transform, glm::vec3(texture.sx, texture.sy, 1.f));
     }
 
+    // Apply the transformations and draw
     bind_and_draw(texture);
 }
 
-// Draw image with additional parameters. 
-// Set scale values to -1 for auto scale 
-// Set origin values to -1 for auto origin at top-left, 0 for centre of image
-void Graphics::drawImage(Graphics::Texture texture, DrawParams params) {
-    // glm::mat4 transform = glm::mat4(1.0f);
-    texture.transform = glm::mat4(1.f);
-    float x = params.x;
-    float y = params.y;
-
-    if (params.ox < 0 && params.oy < 0) {
-        x += (texture.width / 2);
-        y += (texture.height / 2);
-    } else {
-        x += params.ox;
-        y += params.oy;
-    }
-
-    texture.set_position(x, y, screenWidth, screenHeight);
-    if (!texture.scaled) {
-        if (params.sx < 0 && params.sy < 0) {
-            float scaleX = texture.width / static_cast<float>(screenWidth);
-            float scaleY = texture.height / static_cast<float>(screenHeight);
-            texture.transform = glm::scale(texture.transform, glm::vec3(scaleX, scaleY, 1.f));
-        } else {
-            texture.transform = glm::scale(texture.transform, glm::vec3(params.sx, params.sy, 1.f));
-        }
-    } else {
-        texture.transform = glm::scale(texture.transform, glm::vec3(texture.sx, texture.sy, 1.f));
-    }
-    texture.transform = glm::rotate(texture.transform, params.r, glm::vec3(0.0f, 0.0f, 1.0f));
-
-    bind_and_draw(texture);
-}
-
-void Graphics::bind_and_draw(Graphics::Texture texture) {
+void Graphics::bind_and_draw(const Texture& texture) {
     use_shader(textureShader);
-    unsigned int transformLoc = glGetUniformLocation(textureShader.ID, "transform");
-    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(texture.transform));
-
+    glUniformMatrix4fv(glGetUniformLocation(textureShader.ID, "transform"), 1, GL_FALSE, glm::value_ptr(texture.transform));
     glBindVertexArray(VAO);
     glBindTexture(GL_TEXTURE_2D, texture.ID);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

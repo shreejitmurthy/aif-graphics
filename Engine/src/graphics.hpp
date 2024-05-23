@@ -87,14 +87,6 @@ struct Colour {
     float a;
 };
 
-// struct Texture {
-//     unsigned int ID;
-//     int width, height, nrChannels;
-//     unsigned char* data;
-//     glm::mat4 transform;
-//     float sx, sy;
-//     bool scaled = false;
-// };
 typedef struct DrawParams {
     float x, y;
     float sx, sy;
@@ -126,11 +118,11 @@ public:
     void clearBackground(Colour col);
     Texture loadImage(const char* path, TextureFilter filter = {FilterParams::LINEAR, FilterParams::LINEAR});
 
-    void drawImage(Texture texture, float x, float y);
+    void drawImage(Texture& texture, float x, float y);
     void drawImage(Texture texture, DrawParams params);
-    void drawImage(std::unique_ptr<Texture> texture, DrawParams params);
 private:
-    void bind_and_draw(Texture texture);
+    void bind_and_draw(const Texture& texture);
+    void setupBuffers();
 
     int imageCount;
     unsigned int VBO, VAO, EBO;
