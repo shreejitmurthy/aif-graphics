@@ -54,7 +54,6 @@ int main() {
 
         g.clearBackground(TEAL);
 
-        g.drawImage(container, {100, 100, .sx = 1.f, .sy = 0.5f, .r = 0, .ox = -1, .oy = -1});
         g.drawImage(cat, x, y);
 
         glfwSwapBuffers(window);
