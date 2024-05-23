@@ -104,7 +104,7 @@ void Graphics::clearBackground(Colour color) {
 void Graphics::drawImage(Texture& texture, float x, float y) {
     texture.transform = glm::mat4(1.0f);
 
-    texture.set_position(x, y);
+    texture.set_position(x + texture.ox, y + texture.oy);
     texture.transform = glm::translate(texture.transform, Math::ConvertTo3DSpace(glm::vec2(texture.px, texture.py), 1.f, screenWidth, screenHeight));
 
     // check if scale has been set and scale appropriately.

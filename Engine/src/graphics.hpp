@@ -18,7 +18,6 @@
 #define BLACK (Colour) {0.0f, 0.0f, 0.0f, 1.0f}
 #define TEAL  (Colour) {0.2f, 0.3f, 0.3f, 1.0f}
 
-
 // this is so useless
 enum FilterParams {   
     NEAR   = 0x2600,
@@ -52,11 +51,12 @@ public:
         float sx = 1.f, sy = 1.f;
         // rotation can never be negative so set to this initially
         float r = -1.f;
-        float ox = 0.f, oy = 0.f;
+        float ox = -1.f, oy = -1.f;
 
         void set_position(float x, float y);
         void scale(float sx, float sy);
         void rotate(float r);
+        void origin(float ox, float oy);
     };
 
 
