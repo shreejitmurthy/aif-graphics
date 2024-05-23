@@ -117,7 +117,7 @@ void Graphics::drawImage(Texture& texture, float x, float y) {
     }
 
     if (texture.r >= 0) {
-        texture.transform = glm::rotate(texture.transform, texture.r, glm::vec3(texture.ox, texture.oy, 1.0f));
+        texture.transform = glm::rotate(texture.transform, texture.r, glm::vec3(0.f, 0.f, 1.0f));
     }
 
     // Apply the transformations and draw
