@@ -29,7 +29,8 @@ int main() {
 
     Graphics g((GLADloadproc)glfwGetProcAddress, screen_width, screen_height);
 
-    auto cat = g.loadImage("example/resources/big_cat.png");
+    auto cat = g.loadImage("example/resources/majestic_cat.jpeg");
+    cat.scale(0.5, 0.5);
     auto container = g.loadImage("example/resources/container.jpg");
 
     float x = 0;
@@ -53,8 +54,8 @@ int main() {
 
         g.clearBackground(TEAL);
 
-        // g.drawImage(container, x, y, 0.5, 0.5, (float)(glfwGetTime()));
-        g.drawImage(cat, (DrawParams){.x = x, .y = y, .sx = 0.5, .sy = 0.5, .r = 0, .ox = 0, .oy = 0});
+        g.drawImage(container, {100, 100, .sx = 1.f, .sy = 0.5f, .r = 0, .ox = -1, .oy = -1});
+        g.drawImage(cat, x, y);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
