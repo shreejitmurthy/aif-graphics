@@ -5,7 +5,7 @@ CC = clang++
 CFLAGS = -std=c++17 -Iinclude/GLFW -IEngine/glad
 
 # Source files
-SRC = example/src/main.cpp Engine/vendor/glad/glad.c Engine/src/graphics.cpp
+SRC = example/src/main.cpp engine/vendor/glad/glad.c engine/src/graphics.cpp engine/src/shader.cpp
 
 # Object files
 OBJ = $(SRC:example/src/%.cpp=example/bin/%.o)
