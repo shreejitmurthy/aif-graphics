@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "../vendor/glad/glad.h"
 #include "../vendor/glm/glm.hpp"
 #include "../vendor/glm/gtc/matrix_transform.hpp"
@@ -12,6 +11,10 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+
+#define WHITE (Colour) {1.0f, 1.0f, 1.0f, 1.0f}
+#define BLACK (Colour) {0.0f, 0.0f, 0.0f, 1.0f}
+#define TEAL  (Colour) {0.2f, 0.3f, 0.3f, 1.0f}
 
 class Math {
 public:
@@ -66,10 +69,6 @@ void checkCompileErrors(unsigned int shader, std::string type);
 S_Shader new_shader(const char* vertexPath, const char* fragmentPath);
 void use_shader(S_Shader shader);
 
-#define WHITE (Colour) {1.0f, 1.0f, 1.0f, 1.0f}
-#define BLACK (Colour) {0.0f, 0.0f, 0.0f, 1.0f}
-#define TEAL  (Colour) {0.2f, 0.3f, 0.3f, 1.0f}
-
 // this is so useless
 enum FilterParams {   
     NEAR   = 0x2600,
@@ -88,21 +87,38 @@ struct Colour {
     float a;
 };
 
-struct Texture {
-    unsigned int ID;
-    int width, height, nrChannels;
-    unsigned char* data;
-};
-
-struct DrawParams {
+// struct Texture {
+//     unsigned int ID;
+//     int width, height, nrChannels;
+//     unsigned char* data;
+//     glm::mat4 transform;
+//     float sx, sy;
+//     bool scaled = false;
+// };
+typedef struct DrawParams {
     float x, y;
     float sx, sy;
     float r;
     float ox, oy;
-};
+} DrawParams;
 
 class Graphics {
 public:
+
+    class Texture {
+    public:
+        unsigned int ID;
+        int width, height, nrChannels;
+        unsigned char* data;
+        glm::mat4 transform;
+        float sx, sy;
+        bool scaled = false;
+
+        void set_position(float x, float y, int screenWidth, int screenHeight);
+        void scale(float sx, float sy);
+    };
+
+
     Graphics(GLADloadproc proc, int w, int h);
     ~Graphics();
 
@@ -112,9 +128,7 @@ public:
     void drawImage(Texture texture, float x, float y);
     void drawImage(Texture texture, DrawParams params);
 private:
-
-    glm::mat4 generic_scale(Texture texture, glm::mat4 transform);
-    void bind_and_draw(glm::mat4 transform, Texture texture);
+    void bind_and_draw(Texture texture);
 
     int imageCount;
     unsigned int VBO, VAO, EBO;

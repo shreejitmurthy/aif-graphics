@@ -2,6 +2,8 @@
 #include "../vendor/stb_image.h"
 #include "graphics.hpp"
 
+void scale_image();
+
 void checkCompileErrors(unsigned int shader, std::string type) {
     int success;
     char infoLog[1024];
@@ -88,6 +90,16 @@ void setVPT(int w, int h) {
     glViewport(0, 0, w, h);
 }
 
+void Graphics::Texture::scale(float sx, float sy) {
+    this->sx = sx;
+    this->sy = sy;
+    this->scaled = true;
+}
+
+void Graphics::Texture::set_position(float x, float y, int screenWidth, int screenHeight) {
+    transform = glm::translate(transform, Math::ConvertTo3DSpace(glm::vec2(x, y), 1.f, screenWidth, screenHeight));
+}
+
 // load glad + setup vertex data (and buffer(s)) and configure vertex attributess
 Graphics::Graphics(GLADloadproc proc, int w, int h) : screenWidth(w), screenHeight(h) {
     if (!gladLoadGLLoader(proc)) {
@@ -147,8 +159,8 @@ void Graphics::clearBackground(Colour col) {
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-Texture Graphics::loadImage(const char* path, TextureFilter filter) {
-    Texture t;
+Graphics::Texture Graphics::loadImage(const char* path, TextureFilter filter) {
+    Graphics::Texture t;
 
     glGenTextures(1, &t.ID);
     glBindTexture(GL_TEXTURE_2D, t.ID);
@@ -174,19 +186,27 @@ Texture Graphics::loadImage(const char* path, TextureFilter filter) {
     return t;
 }
 
-void Graphics::drawImage(Texture texture, float x, float y) {
-    glm::mat4 transform = glm::mat4(1.0f);
-    transform = glm::translate(transform, Math::ConvertTo3DSpace(glm::vec2(x, y), 1.f, screenWidth, screenHeight));
-    transform = generic_scale(texture, transform);
+void Graphics::drawImage(Graphics::Texture texture, float x, float y) {
+    texture.transform = glm::mat4(1.0f);
+    texture.set_position(x, y, screenWidth, screenHeight);
 
-    bind_and_draw(transform, texture);
+    if (!texture.scaled) {
+        float scaleX = texture.width / static_cast<float>(screenWidth);
+        float scaleY = texture.height / static_cast<float>(screenHeight);
+        texture.transform = glm::scale(texture.transform, glm::vec3(scaleX, scaleY, 1.f));
+    } else {
+        texture.transform = glm::scale(texture.transform, glm::vec3(texture.sx, texture.sy, 1.f));
+    }
+
+    bind_and_draw(texture);
 }
 
 // Draw image with additional parameters. 
 // Set scale values to -1 for auto scale 
 // Set origin values to -1 for auto origin at top-left, 0 for centre of image
-void Graphics::drawImage(Texture texture, DrawParams params) {
-    glm::mat4 transform = glm::mat4(1.0f);
+void Graphics::drawImage(Graphics::Texture texture, DrawParams params) {
+    // glm::mat4 transform = glm::mat4(1.0f);
+    texture.transform = glm::mat4(1.f);
     float x = params.x;
     float y = params.y;
 
@@ -198,26 +218,27 @@ void Graphics::drawImage(Texture texture, DrawParams params) {
         y += params.oy;
     }
 
-    transform = glm::translate(transform, Math::ConvertTo3DSpace(glm::vec2(x, y), 1.f, screenWidth, screenHeight));
-    (params.sx < 0 && params.sy < 0) ? transform = generic_scale(texture, transform) : transform = glm::scale(transform, glm::vec3(params.sx, params.sy, 1.f));
-    transform = glm::rotate(transform, params.r, glm::vec3(0.0f, 0.0f, 1.0f));
+    texture.transform = glm::translate(texture.transform, Math::ConvertTo3DSpace(glm::vec2(x, y), 1.f, screenWidth, screenHeight));
+    if (params.sx < 0 && params.sy < 0) {
+        float scaleX = texture.width / static_cast<float>(screenWidth);
+        float scaleY = texture.height / static_cast<float>(screenHeight);
+        texture.transform = glm::scale(texture.transform, glm::vec3(scaleX, scaleY, 1.f));
+    } else {
+        texture.transform = glm::scale(texture.transform, glm::vec3(params.sx, params.sy, 1.f));
+    }
+    
+    texture.transform = glm::rotate(texture.transform, params.r, glm::vec3(0.0f, 0.0f, 1.0f));
 
-    bind_and_draw(transform, texture);
+    bind_and_draw(texture);
 }
 
-glm::mat4 Graphics::generic_scale(Texture texture, glm::mat4 transform) {
-    float scaleX = texture.width / static_cast<float>(screenWidth);
-    float scaleY = texture.height / static_cast<float>(screenHeight);
-    transform = glm::scale(transform, glm::vec3(scaleX, scaleY, 1.f));
-    return transform;
-}
-
-void Graphics::bind_and_draw(glm::mat4 transform, Texture texture) {
+void Graphics::bind_and_draw(Graphics::Texture texture) {
     use_shader(textureShader);
     unsigned int transformLoc = glGetUniformLocation(textureShader.ID, "transform");
-    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(texture.transform));
 
     glBindVertexArray(VAO);
     glBindTexture(GL_TEXTURE_2D, texture.ID);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
+
