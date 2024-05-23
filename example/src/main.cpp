@@ -2,7 +2,10 @@
 #include "../include/GLFW/glfw3.h"
 #include <cmath>
 
-// TODO: See if multiple images in one scene can work.
+/* TODO:
+    -  Support images with transparency
+    -  Text rendering
+*/
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
