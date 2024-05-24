@@ -33,11 +33,10 @@ int main() {
     Graphics g((GLADloadproc)glfwGetProcAddress, screen_width, screen_height);
 
     auto cat = g.loadImage("example/resources/majestic_cat.jpeg");
-    cat.scale(0.5f, 0.5f);
     auto container = g.loadImage("example/resources/container.jpg");
 
-    float x = 0;
-    float y = 0;
+    float x = screen_width/2;
+    float y = screen_height/2;
 
     glfwSwapInterval(1);
 
@@ -58,6 +57,7 @@ int main() {
         g.clearBackground(TEAL);
 
         cat.rotate((float)glfwGetTime());
+        cat.scale(sin((double)glfwGetTime()), sin((double)glfwGetTime()) / 2.f);
         g.drawImage(cat, x, y);
 
         glfwSwapBuffers(window);
