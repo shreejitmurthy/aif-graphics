@@ -15,7 +15,7 @@ OBJ = $(SRC:example/src/%.cpp=example/bin/%.o)
 OUT = example/bin/main
 
 # Libraries
-LDFLAGS = -Lexample/libs -lglfw
+LDFLAGS = -Lexample/libs -lglfw 
 
 # GLFW required frameworks on macOS
 UNAME_S := $(shell uname -s)
