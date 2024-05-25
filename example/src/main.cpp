@@ -3,7 +3,6 @@
 #include <cmath>
 
 /* TODO:
-    -  Support images with transparency
     -  Text rendering
 */
 
@@ -33,7 +32,6 @@ int main() {
     Graphics g((GLADloadproc)glfwGetProcAddress, screen_width, screen_height);
 
     auto cat = g.loadImage("example/resources/majestic_cat.jpeg");
-    auto container = g.loadImage("example/resources/container.jpg");
 
     float x = screen_width/2;
     float y = screen_height/2;
