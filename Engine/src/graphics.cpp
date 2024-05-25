@@ -87,6 +87,8 @@ Graphics::Texture Graphics::loadImage(const char* path, TextureFilter filter) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter.mag);
     texture.data = stbi_load(path, &texture.width, &texture.height, &texture.nrChannels, 4);
     if (texture.data) {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture.data);
         glGenerateMipmap(GL_TEXTURE_2D);
         stbi_image_free(texture.data);
