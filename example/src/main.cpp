@@ -1,10 +1,6 @@
-#include "../../engine/src/graphics.hpp"
+#include "../../Engine/src/graphics.hpp"
 #include "../include/GLFW/glfw3.h"
 #include <cmath>
-
-/* TODO:
-    -  Text rendering
-*/
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
