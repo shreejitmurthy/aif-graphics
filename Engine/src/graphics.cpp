@@ -1,5 +1,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "../vendor/stb_image.h"
+
+// #include "../vendor/ft2build.h"
+// #include FT_FREETYPE_H
+
 #include "graphics.hpp"
 #include "math.hpp"
 
